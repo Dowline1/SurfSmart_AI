@@ -13,23 +13,26 @@ class WebcamFetcher:
     """Agent for fetching surf webcam screenshots from onitsurf.com"""
     
     def __init__(self):
+        # Base path for sample images
+        self.base_path = os.path.join(os.path.dirname(__file__), "sample_images")
+        
         # Mapping of locations to webcam URLs
         # These would need to be scraped or obtained from onitsurf.com
         self.webcam_urls = {
             "Liscannor Bay, Ireland": {
                 "name": "Liscannor Bay",
                 "url": None,  # To be implemented with actual scraping
-                "sample": "https://images.unsplash.com/photo-1502933691298-84fc14542831?w=800"
+                "sample": os.path.join(self.base_path, "liscannor_bay.jpg")
             },
             "Lahinch, Ireland": {
                 "name": "Lahinch",
                 "url": None,  # To be implemented with actual scraping
-                "sample": "https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=800"
+                "sample": os.path.join(self.base_path, "lahinch.jpg")
             },
             "Bundoran, Ireland": {
                 "name": "Bundoran",
                 "url": None,  # To be implemented with actual scraping
-                "sample": "https://images.unsplash.com/photo-1483683804023-6ccdb62f86ef?w=800"
+                "sample": os.path.join(self.base_path, "bundoran.jpg")
             }
         }
     
@@ -51,7 +54,7 @@ class WebcamFetcher:
         
         # For testing: use sample images
         if use_sample:
-            return self._fetch_sample_image(webcam_data["sample"])
+            return self._load_local_sample(webcam_data["sample"])
         
         # For production: scrape actual webcam from onitsurf.com
         # This would require:
@@ -60,15 +63,18 @@ class WebcamFetcher:
         # 3. Capturing/downloading the current frame
         return self._fetch_live_webcam(webcam_data["url"])
     
-    def _fetch_sample_image(self, url: str) -> Optional[Image.Image]:
-        """Fetch sample image from URL for testing"""
+    def _load_local_sample(self, filepath: str) -> Optional[Image.Image]:
+        """Load sample image from local file"""
         try:
-            response = requests.get(url, timeout=10)
-            if response.status_code == 200:
-                return Image.open(BytesIO(response.content))
+            if os.path.exists(filepath):
+                img = Image.open(filepath)
+                return img
+            else:
+                print(f"Sample image not found: {filepath}")
+                return None
         except Exception as e:
-            print(f"Failed to fetch sample image: {e}")
-        return None
+            print(f"Error loading sample image: {e}")
+            return None
     
     def _fetch_live_webcam(self, url: Optional[str]) -> Optional[Image.Image]:
         """

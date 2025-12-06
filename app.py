@@ -9,6 +9,8 @@ from PIL import Image
 from dotenv import load_dotenv
 from agents.forecast_graph import SurfSmartGraph
 from agents.webcam_fetcher import WebcamFetcher
+import folium
+from streamlit_folium import st_folium
 
 # Load environment variables
 load_dotenv()
@@ -26,9 +28,24 @@ st.set_page_config(
 
 # Location data (for prototype)
 LOCATIONS = {
-    "Liscannor Bay, Ireland": {"lat": 52.9369, "lon": -9.3981},
-    "Lahinch, Ireland": {"lat": 52.9324, "lon": -9.3477},
-    "Bundoran, Ireland": {"lat": 54.4769, "lon": -8.2803}
+    "Liscannor Bay": {
+        "lat": 52.9369, 
+        "lon": -9.3981,
+        "full_name": "Liscannor Bay, Ireland",
+        "description": "Beginner-friendly beach break"
+    },
+    "Lahinch": {
+        "lat": 52.9324, 
+        "lon": -9.3477,
+        "full_name": "Lahinch, Ireland",
+        "description": "Popular surf town, all levels"
+    },
+    "Bundoran": {
+        "lat": 54.4769, 
+        "lon": -8.2803,
+        "full_name": "Bundoran, Ireland",
+        "description": "Premier surf destination"
+    }
 }
 
 @st.cache_resource
@@ -45,6 +62,35 @@ def initialize_webcam_fetcher():
     """Initialize the webcam fetcher"""
     return WebcamFetcher()
 
+def create_ireland_map(selected_location=None):
+    """Create an interactive map of Ireland with surf spots"""
+    # Center map on Ireland
+    ireland_map = folium.Map(
+        location=[53.4, -7.9],  # Center of Ireland
+        zoom_start=7,
+        tiles="OpenStreetMap"
+    )
+    
+    # Add markers for each location
+    for name, data in LOCATIONS.items():
+        # Determine if this location is selected
+        is_selected = (selected_location == name)
+        
+        folium.Marker(
+            location=[data["lat"], data["lon"]],
+            popup=folium.Popup(
+                f"<b>{name}</b><br>{data['description']}<br>Click to select",
+                max_width=200
+            ),
+            tooltip=name,
+            icon=folium.Icon(
+                color="red" if is_selected else "blue",
+                icon="water" if is_selected else "info-sign"
+            )
+        ).add_to(ireland_map)
+    
+    return ireland_map
+
 # UI Layout
 st.title("🏄 SurfSmart AI: Multi-Modal Forecast Generator")
 st.markdown("*Powered by LangGraph Agent Workflow*")
@@ -57,13 +103,6 @@ webcam_fetcher = initialize_webcam_fetcher()
 # Sidebar configuration
 with st.sidebar:
     st.header("⚙️ Configuration")
-    
-    # Location selection
-    location = st.selectbox(
-        "Select Location:",
-        options=list(LOCATIONS.keys()),
-        help="Choose a surf spot"
-    )
     
     # Skill level selection
     skill_level = st.selectbox(
@@ -82,7 +121,7 @@ with st.sidebar:
     )
     
     st.markdown("---")
-    st.info("💡 **Tip:** Sample webcam images are used for testing. Live webcam fetching from onitsurf.com coming soon!")
+    st.info("💡 **Tip:** Click on a marker on the map to select a surf spot!")
     
     # Show agent workflow
     with st.expander("🔄 Agent Workflow"):
@@ -95,6 +134,51 @@ with st.sidebar:
         """)
 
 # Main content area
+st.subheader("🗺️ Select Surf Spot")
+
+# Initialize session state for selected location
+if "selected_location" not in st.session_state:
+    st.session_state.selected_location = "Lahinch"
+
+# Create and display map with a key based on selected location to force updates
+ireland_map = create_ireland_map(st.session_state.selected_location)
+map_data = st_folium(
+    ireland_map, 
+    width=None, 
+    height=400, 
+    returned_objects=["last_object_clicked"],
+    key=f"map_{st.session_state.selected_location}"
+)
+
+# Update selected location based on map click
+if map_data and map_data.get("last_object_clicked"):
+    clicked_lat = map_data["last_object_clicked"]["lat"]
+    clicked_lon = map_data["last_object_clicked"]["lng"]
+    
+    # Find which location was clicked
+    for name, data in LOCATIONS.items():
+        if abs(data["lat"] - clicked_lat) < 0.01 and abs(data["lon"] - clicked_lon) < 0.01:
+            if st.session_state.selected_location != name:
+                st.session_state.selected_location = name
+                st.rerun()
+            break
+
+# Display selected location info
+location = st.session_state.selected_location
+location_data = LOCATIONS[location]
+full_location_name = location_data["full_name"]
+
+col_info1, col_info2, col_info3 = st.columns(3)
+with col_info1:
+    st.metric("📍 Selected Spot", location)
+with col_info2:
+    st.metric("📊 Skill Level", skill_level)
+with col_info3:
+    st.metric("🌊 Description", location_data["description"])
+
+st.markdown("---")
+
+# Image and data section
 col1, col2 = st.columns([1, 1])
 
 with col1:
@@ -110,28 +194,29 @@ with col1:
         )
         if uploaded_file is not None:
             image = Image.open(uploaded_file)
-            st.image(image, caption="Uploaded Image", use_container_width=True)
+            st.image(image, caption="Uploaded Image", width="stretch")
     else:
-        # Fetch sample webcam image
-        with st.spinner("Fetching webcam image..."):
-            image = webcam_fetcher.fetch_webcam_image(location, use_sample=True)
-            if image:
-                st.image(image, caption=f"Sample Webcam - {location}", use_container_width=True)
-                st.caption("📷 Using sample image from web (onitsurf.com integration coming soon)")
-            else:
-                st.warning("Failed to fetch webcam image. Please upload an image instead.")
+        # Fetch sample webcam image based on selected location
+        image = webcam_fetcher.fetch_webcam_image(full_location_name, use_sample=True)
+        if image:
+            st.image(image, caption=f"Sample Webcam - {location}", width="stretch")
+            st.caption("📷 Local sample image (onitsurf.com integration coming soon)")
+        else:
+            st.warning("Failed to load webcam image. Please upload an image instead.")
+            st.info(f"Looking for image at: agents/sample_images/{location.lower().replace(' ', '_')}.jpg")
 
 with col2:
-    st.subheader("📍 Location Information")
-    coords = LOCATIONS[location]
+    st.subheader("📍 Location Details")
     st.markdown(f"**Location:** {location}")
-    st.markdown(f"**Coordinates:** {coords['lat']:.4f}, {coords['lon']:.4f}")
+    st.markdown(f"**Full Name:** {full_location_name}")
+    st.markdown(f"**Coordinates:** {location_data['lat']:.4f}, {location_data['lon']:.4f}")
     st.markdown(f"**Skill Level:** {skill_level}")
+    st.markdown(f"**Description:** {location_data['description']}")
     
     if image_source == "Use Live Webcam (Sample)":
-        st.info("🎥 Using sample webcam image. The production version will automatically fetch live webcam screenshots from onitsurf.com")
+        st.info("🎥 Using sample webcam image. Production version will fetch live webcams from onitsurf.com")
     else:
-        st.info("Data will be collected from multiple agents when you generate the forecast.")
+        st.info("Upload an image to see the multi-agent workflow in action")
 
 st.markdown("---")
 
@@ -142,11 +227,11 @@ if st.button("🚀 Generate Forecast", type="primary", use_container_width=True)
     else:
         with st.spinner("🔄 Running agent workflow..."):
             # Get location coordinates
-            coords = LOCATIONS[location]
+            coords = location_data
             
             # Run LangGraph workflow
             result = graph.generate_forecast(
-                location=location,
+                location=full_location_name,
                 latitude=coords["lat"],
                 longitude=coords["lon"],
                 skill_level=skill_level,

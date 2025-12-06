@@ -44,7 +44,7 @@ class SurfSmartGraph:
     def __init__(self, gemini_api_key: str):
         self.gemini_api_key = gemini_api_key
         self.llm = ChatGoogleGenerativeAI(
-            model="gemini-1.5-flash",
+            model="gemini-2.5-flash",
             google_api_key=gemini_api_key
         )
         
@@ -116,7 +116,7 @@ class SurfSmartGraph:
             # For multi-modal with image, we need to use the generativeai library directly
             import google.generativeai as genai
             genai.configure(api_key=self.gemini_api_key)
-            model = genai.GenerativeModel('gemini-1.5-flash')
+            model = genai.GenerativeModel('gemini-2.5-flash')
             
             # Generate forecast with text + image
             response = model.generate_content([prompt, state["image"]])
