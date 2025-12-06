@@ -26,6 +26,39 @@ st.set_page_config(
     layout="wide"
 )
 
+# Custom CSS for surf theme
+st.markdown("""
+    <style>
+    /* Header styling */
+    .main h1 {
+        color: #0077BE;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    /* Button styling */
+    .stButton > button {
+        background: linear-gradient(135deg, #0077BE 0%, #00B4D8 100%);
+        color: white;
+        font-weight: bold;
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 25px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .stButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    }
+    
+    /* Info boxes */
+    .stAlert {
+        border-radius: 10px;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 # Location data (for prototype)
 LOCATIONS = {
     "Liscannor Bay": {
@@ -92,8 +125,13 @@ def create_ireland_map(selected_location=None):
     return ireland_map
 
 # UI Layout
-st.title("🏄 SurfSmart AI: Multi-Modal Forecast Generator")
-st.markdown("*Powered by LangGraph Agent Workflow*")
+st.markdown("""
+    <h1 style='text-align: center;'>🏄‍♂️ SurfSmart AI 🌊</h1>
+    <p style='text-align: center; font-size: 1.2rem; color: #0077BE;'>
+        <b>Multi-Modal Surf Forecast Generator</b><br>
+        <i>Powered by LangGraph Multi-Agent System</i>
+    </p>
+""", unsafe_allow_html=True)
 st.markdown("---")
 
 # Initialize graph and webcam fetcher
@@ -126,11 +164,11 @@ with st.sidebar:
     # Show agent workflow
     with st.expander("🔄 Agent Workflow"):
         st.markdown("""
-        1. **Wave Agent** - Collects wave/tide data
-        2. **Weather Agent** - Fetches wind/conditions
-        3. **Safety Agent** - Gets alerts & warnings
-        4. **Amenities Agent** - Finds local services
-        5. **Forecast Agent** - Generates prediction
+        1. 🌊 **Wave Agent** - Collects wave/tide data
+        2. 💨 **Weather Agent** - Fetches wind/conditions
+        3. ⚠️ **Safety Agent** - Gets alerts & warnings
+        4. 🏪 **Amenities Agent** - Finds local services
+        5. 🤖 **Forecast Agent** - Generates prediction
         """)
 
 # Main content area
@@ -287,9 +325,10 @@ if st.button("🚀 Generate Forecast", type="primary", use_container_width=True)
 st.markdown("---")
 st.markdown(
     """
-    <div style='text-align: center; color: #666;'>
-    <p>SurfSmart AI • LangGraph Multi-Agent System</p>
-    <p>Powered by Google Gemini API</p>
+    <div style='text-align: center; padding: 20px;'>
+        <p style='font-size: 1.1rem; color: #0077BE;'>🏄‍♂️ <b>SurfSmart AI</b> 🌊</p>
+        <p style='color: #666;'>LangGraph Multi-Agent System • Powered by Google Gemini 2.5 Flash</p>
+        <p style='color: #888; font-size: 0.9rem;'>Stay Safe • Surf Smart • Catch Waves 🤙</p>
     </div>
     """,
     unsafe_allow_html=True
