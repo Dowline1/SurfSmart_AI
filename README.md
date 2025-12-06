@@ -1,18 +1,19 @@
 # 🏄 SurfSmart AI - Multi-Modal Surf Forecast Generator
 
 **Foundations of Generative AI and LLMs - CA2**  
-A Streamlit prototype demonstrating multi-modal AI fusion using Google Gemini API
+A Streamlit prototype with LangGraph multi-agent orchestration using Google Gemini API
 
 ## 📋 Overview
 
-SurfSmart AI combines multiple data sources (text, numerical metrics, and images) to generate personalized surf forecasts. The system demonstrates **multi-modal AI fusion** by analyzing webcam images alongside weather data.
+SurfSmart AI uses a **LangGraph agent workflow** to collect data from multiple sources and generate personalized surf forecasts. Each specialized agent handles a specific data type, demonstrating **multi-modal AI fusion** with text, numerical, and image inputs.
 
 ### Features
 
-- 🤖 Multi-modal AI processing (text + image)
+- 🤖 LangGraph multi-agent orchestration
+- 🌊 Specialized agents for wave, weather, safety, and amenities data
 - 🎯 Personalized forecasts by skill level
 - ⚠️ Safety-first approach
-- 📊 Data fusion from multiple sources
+- 📊 Real-time data fusion
 - 🔍 LangSmith tracing for debugging
 
 ---
@@ -40,39 +41,54 @@ streamlit run app.py
 
 ## 🏗️ Architecture
 
-### Multi-Modal Workflow
+### LangGraph Agent Workflow
 
-1. **Input Layer**
-   - 📸 Visual: Webcam image (user upload)
-   - 📊 Structured: Wave height, wind, tide data
-   - ⚠️ Unstructured: Safety alerts and context
+**Agent Pipeline:**
+1. **Wave Data Agent** → Fetches wave height, swell period, tide data
+2. **Weather Data Agent** → Collects wind speed/direction, temperature
+3. **Safety Data Agent** → Retrieves riptide alerts, warnings
+4. **Amenities Data Agent** → Finds surf shops, parking, facilities
+5. **Forecast Generation** → Gemini analyzes all data + image
 
-2. **Processing Layer**
-   - Prompt engineering (system + user prompts)
-   - Gemini API multi-modal processing
-   - Skill level personalization
+**Data Sources:**
+- 📊 Structured: Stormglass, Open-Meteo, WorldTides APIs
+- ⚠️ Unstructured: Safety alerts, local advisories
+- 📸 Visual: Webcam image (user upload)
 
-3. **Output Layer**
-   - Natural language forecast (3 sentences)
-   - Safety warnings
-   - Skill-specific advice
+**Multi-Modal Output:**
+- Natural language forecast (3 sentences)
+- Safety warnings
+- Skill-specific advice
+- Collected data visualization
 
 ---
 
 ## 💻 Technical Stack
 
 - **Streamlit**: Web framework
+- **LangGraph**: Agent orchestration workflow
+- **LangChain**: Agent framework
 - **Google Gemini API**: Multi-modal AI (gemini-1.5-flash)
 - **PIL (Pillow)**: Image processing
 - **python-dotenv**: Environment variables
 - **LangSmith**: AI tracing (optional)
+- **Requests/HTTPX**: API calls
 
-### Key Functions
+### Agent Architecture
 
-- `configure_gemini()`: API setup
-- `simulate_surf_data()`: Sample data generation
-- `construct_prompt()`: Multi-modal prompt engineering
-- `generate_forecast()`: API call and response handling
+```
+agents/
+├── __init__.py
+├── data_agents.py      # Specialized data collection agents
+└── forecast_graph.py   # LangGraph workflow orchestrator
+```
+
+**Agents:**
+- `WaveDataAgent`: Wave/swell/tide data
+- `WeatherDataAgent`: Wind/temperature data  
+- `SafetyDataAgent`: Alerts and warnings
+- `AmenitiesDataAgent`: Local services
+- `WebcamAgent`: Image handling
 
 ---
 
@@ -91,12 +107,16 @@ LangSmith tracing (optional) provides prompt visibility and debugging.
 
 ```
 SurfSmart_AI/
-├── app.py              # Main application
-├── requirements.txt    # Dependencies
-├── .env               # API keys (DO NOT COMMIT!)
-├── .env.example       # Template
-├── .gitignore         # Git protection
-└── README.md          # This file
+├── agents/
+│   ├── __init__.py
+│   ├── data_agents.py       # Data collection agents
+│   └── forecast_graph.py    # LangGraph workflow
+├── app.py                   # Streamlit interface
+├── requirements.txt         # Dependencies
+├── .env                     # API keys (DO NOT COMMIT!)
+├── .env.example            # Template
+├── .gitignore              # Git protection
+└── README.md               # This file
 ```
 
 ## 🔒 Security
@@ -109,10 +129,11 @@ SurfSmart_AI/
 
 **Course**: Foundations of Generative AI and LLMs  
 **Demonstrates**:
+- LangGraph multi-agent orchestration
+- Agent-based data collection workflow
 - Multi-modal input processing (text + images)
 - Prompt engineering
 - Safety-conscious AI design
-- Data fusion from multiple sources
 
 ---
 
