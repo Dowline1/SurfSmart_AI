@@ -55,6 +55,12 @@ The app will open at `http://localhost:8501`
 
 ## 🏗️ Architecture
 
+### LangGraph Workflow Visualization
+
+![LangGraph Agent Workflow](langgraph_workflow.png)
+
+The diagram above shows the sequential execution of agents in the SurfSmartGraph StateGraph. Each node represents a specialized agent that collects and processes specific data types before passing state to the next agent.
+
 ### How It Works
 
 1. **User Selection**
